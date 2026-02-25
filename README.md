@@ -24,12 +24,13 @@
 2. [Design System](#design-system)
 3. [Core Features](#core-features)
 4. [Pages & User Flow](#pages--user-flow)
-5. [Video Showcase](#video-showcase)
-6. [Project Structure](#project-structure)
-7. [Local Setup](#local-setup)
-8. [PWA & Notifications](#pwa--notifications)
-9. [Deployment Notes](#deployment-notes)
-10. [Future Upgrades](#future-upgrades)
+5. [Animated Timeline](#animated-timeline)
+6. [Video Showcase](#video-showcase)
+7. [Project Structure](#project-structure)
+8. [Local Setup](#local-setup)
+9. [PWA & Notifications](#pwa--notifications)
+10. [Deployment Notes](#deployment-notes)
+11. [Future Upgrades](#future-upgrades)
 
 ---
 
@@ -115,6 +116,95 @@ The interface is intentionally editorial and luxurious, using warm gold accents,
    - Guests
    - Payment method
 5. Submit request to WhatsApp + Email
+
+---
+
+## Animated Timeline
+
+This timeline represents the premium user journey from discovery to conversion.
+
+### Experience Timeline
+
+1. **Landing Hero**
+Visitor sees cinematic brand intro and core CTA.
+2. **Room Discovery**
+User browses room cards and opens room detail gallery.
+3. **Booking Intent**
+User taps **Book Now** and opens the booking overlay.
+4. **Reservation Submission**
+User fills name, phone, check-in/out, room type, guests, payment method.
+5. **Live Confirmation**
+In-app + device notifications confirm that booking request was sent.
+
+### Animated Timeline Snippet (for docs pages)
+
+```html
+<ul class="timeline">
+  <li>Landing Hero</li>
+  <li>Room Discovery</li>
+  <li>Booking Intent</li>
+  <li>Reservation Submission</li>
+  <li>Live Confirmation</li>
+</ul>
+```
+
+```css
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  max-width: 720px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #c8a96e;
+}
+
+.timeline li {
+  position: relative;
+  margin: 0 0 18px 32px;
+  padding: 10px 14px;
+  border: 1px solid #e8e0d0;
+  background: #faf8f3;
+  animation: timelineFade 0.6s ease both;
+}
+
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: -27px;
+  top: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #c8a96e;
+  box-shadow: 0 0 0 0 rgba(200, 169, 110, 0.5);
+  animation: pulse 1.6s infinite;
+}
+
+.timeline li:nth-child(1) { animation-delay: 0.1s; }
+.timeline li:nth-child(2) { animation-delay: 0.25s; }
+.timeline li:nth-child(3) { animation-delay: 0.4s; }
+.timeline li:nth-child(4) { animation-delay: 0.55s; }
+.timeline li:nth-child(5) { animation-delay: 0.7s; }
+
+@keyframes timelineFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(200, 169, 110, 0.5); }
+  100% { box-shadow: 0 0 0 12px rgba(200, 169, 110, 0); }
+}
+```
 
 ---
 
