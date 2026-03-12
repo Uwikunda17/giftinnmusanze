@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   addDoc, collection, onSnapshot, orderBy,
@@ -58,6 +58,7 @@ const css = `
     grid-template-columns: var(--sidebar-w) 1fr;
   }
   @media (max-width: 900px) {
+    /* collapse to a single column on smaller screens */
     .ad-wrap { grid-template-columns: 1fr; }
   }
 
@@ -65,8 +66,9 @@ const css = `
      SIDEBAR
   ════════════════════════════ */
   .ad-sidebar {
-    position: fixed;
-    top: 0; left: 0; bottom: 0;
+    /* removed fixed positioning so the sidebar participates in the grid
+       this prevents the main content from sliding underneath and makes
+       resizing behaviour more predictable */
     width: var(--sidebar-w);
     background: var(--dark2);
     border-right: 1px solid rgba(200,169,110,0.14);
@@ -242,24 +244,34 @@ const css = `
      MAIN AREA
   ════════════════════════════ */
   .ad-main {
-    margin-left: var(--sidebar-w);
+    /* no margin-left required when sidebar is part of grid layout */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background: var(--dark);
   }
+  /* media rule retained only to override any external overrides that
+     might add a margin, but not strictly necessary now */
   @media (max-width: 900px) { .ad-main { margin-left: 0; } }
+
+  /* Centered content container */
+  .ad-inner {
+    width: min(1200px, calc(100% - 48px));
+    margin: 0 auto;
+    /* ensure content doesn't hug the edge when sidebar is visible */
+    padding-left: 24px;
+    padding-right: 24px;
+  }
 
   /* Top bar */
   .ad-topbar {
     background: var(--dark2);
     border-bottom: 1px solid rgba(200,169,110,0.12);
-    padding: 18px 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
+    padding: 16px 0;
     flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 150; /* sit above content but below sidebar */
   }
   .ad-topbar-title {
     font-family: var(--serif);
@@ -281,21 +293,22 @@ const css = `
   .ad-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: rgba(200,169,110,0.1);
-    border-bottom: 1px solid rgba(200,169,110,0.1);
+    gap: 12px;
+    padding: 16px 0;
     flex-shrink: 0;
   }
   @media (max-width: 700px) { .ad-stats { grid-template-columns: repeat(2,1fr); } }
   .ad-stat {
     background: var(--dark2);
-    padding: 20px 24px;
+    padding: 18px 20px;
     display: flex;
     align-items: center;
     gap: 14px;
-    transition: background 0.3s;
+    border: 1px solid rgba(200,169,110,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+    transition: background 0.3s, transform 0.2s;
   }
-  .ad-stat:hover { background: var(--dark3); }
+  .ad-stat:hover { background: var(--dark3); transform: translateY(-2px); }
   .ad-stat-icon {
     width: 36px; height: 36px;
     background: var(--gold-dim);
@@ -322,12 +335,40 @@ const css = `
 
   /* Content area */
   .ad-content {
-    padding: 28px;
+    padding: 32px 0 48px;
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 32px;
     flex: 1;
   }
+  .ad-content > * {
+    width: 100%;
+  }
+
+  .ad-section-block {
+    background: radial-gradient(circle at 20% 20%, rgba(200,169,110,0.08), transparent 35%),
+                linear-gradient(180deg, rgba(26,20,16,0.9), rgba(15,12,8,0.92));
+    border: 1px solid rgba(200,169,110,0.12);
+    box-shadow: 0 16px 50px rgba(0,0,0,0.35);
+    padding: 24px 24px 30px;
+  }
+
+  .ad-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(180px,1fr));
+    gap: 14px;
+    margin-top: 18px;
+  }
+  @media (max-width: 900px) { .ad-overview-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+  @media (max-width: 560px) { .ad-overview-grid { grid-template-columns: 1fr; } }
+
+  .ad-overview-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 16px;
+    margin-top: 18px;
+  }
+  @media (max-width: 720px) { .ad-overview-actions { grid-template-columns: 1fr; } }
 
   /* Section titles */
   .ad-section-header {
@@ -370,6 +411,7 @@ const css = `
     display: flex;
     flex-direction: column;
     gap: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
   }
 
   /* Form elements */
@@ -513,11 +555,11 @@ const css = `
 
   /* Empty state */
   .ad-empty {
-    padding: 32px 0;
+    padding: 42px 0;
     text-align: center;
-    font-size: 12px;
-    font-weight: 300;
-    color: rgba(250,248,243,0.25);
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(250,248,243,0.4);
     letter-spacing: 0.08em;
     font-style: italic;
   }
@@ -658,11 +700,11 @@ const fmtDate = (ts) => {
 }
 
 const NAV_ITEMS = [
-  { id: 'overview',   label: 'Overview',      icon: ICONS.dash,     anchor: 'ad-overview' },
-  { id: 'bookings',   label: 'Bookings',       icon: ICONS.booking,  anchor: 'ad-bookings' },
-  { id: 'notify',     label: 'Notifications',  icon: ICONS.bell,     anchor: 'ad-notify'   },
-  { id: 'announce',   label: 'Announcements',  icon: ICONS.announce, anchor: 'ad-announce' },
-  { id: 'chat',       label: 'Live Chat',      icon: ICONS.chat,     anchor: 'ad-chat'     },
+  { id: 'overview',   label: 'Overview',      icon: ICONS.dash },
+  { id: 'bookings',   label: 'Bookings',      icon: ICONS.booking },
+  { id: 'notify',     label: 'Notifications', icon: ICONS.bell },
+  { id: 'announce',   label: 'Announcements', icon: ICONS.announce },
+  { id: 'chat',       label: 'Live Chat',     icon: ICONS.chat },
 ]
 
 function AdminDashboard() {
@@ -695,9 +737,9 @@ function AdminDashboard() {
     return () => unsubs.forEach((u) => u())
   }, [user])
 
-  const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-    setActiveNav(id.replace('ad-', ''))
+  const navigateSection = (id) => {
+    setActiveNav(id)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const submitNotification = async (e) => {
@@ -732,7 +774,7 @@ function AdminDashboard() {
       <div className="ad-auth-screen" style={{ fontFamily: 'Jost, sans-serif' }}>
         <style>{css}</style>
         <p style={{ color: 'rgba(250,248,243,0.3)', fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-          Loading…
+          Loading...
         </p>
       </div>
     )
@@ -797,7 +839,7 @@ function AdminDashboard() {
               key={item.id}
               type="button"
               className={`ad-nav-btn${activeNav === item.id ? ' active' : ''}`}
-              onClick={() => scrollTo(item.anchor)}
+              onClick={() => navigateSection(item.id)}
             >
               <Icon d={item.icon} size={14} />
               {item.label}
@@ -831,250 +873,290 @@ function AdminDashboard() {
 
         {/* Top bar */}
         <div className="ad-topbar">
-          <div>
-            <p className="ad-topbar-title" id="ad-overview">GiftInn <em>Dashboard</em></p>
-            <p className="ad-topbar-sub">Manage bookings, notifications, announcements and live chat</p>
+          <div className="ad-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+            <div>
+              <p className="ad-topbar-title" id="ad-overview">GiftInn <em>Dashboard</em></p>
+              <p className="ad-topbar-sub">Manage bookings, notifications, announcements and live chat</p>
+            </div>
           </div>
         </div>
 
-        {/* Stats strip */}
-        <div className="ad-stats">
-          {[
-            { icon: ICONS.booking,  num: bookings.length,       label: 'Bookings'       },
-            { icon: ICONS.bell,     num: notifications.length,  label: 'Notifications'  },
-            { icon: ICONS.announce, num: announcements.length,  label: 'Announcements'  },
-            { icon: ICONS.chat,     num: chatMessages.length,   label: 'Chat Messages'  },
-          ].map((s) => (
-            <div className="ad-stat" key={s.label}>
-              <div className="ad-stat-icon"><Icon d={s.icon} size={16} /></div>
-              <div>
-                <div className="ad-stat-num">{s.num}</div>
-                <div className="ad-stat-label">{s.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
+        <div className="ad-inner">
         <div className="ad-content">
 
-          {/* ════ BOOKINGS ════ */}
-          <div id="ad-bookings">
-            <div className="ad-section-header">
-              <div>
-                <p className="ad-section-eyebrow">Reservations</p>
-                <h2 className="ad-section-title">Booking <em>Requests</em></h2>
+          {activeNav === 'overview' && (
+            <div className="ad-section-block">
+              <div className="ad-section-header">
+                <div>
+                  <p className="ad-section-eyebrow">Snapshot</p>
+                  <h2 className="ad-section-title">Today&#39;s <em>Overview</em></h2>
+                </div>
+              </div>
+              <div className="ad-overview-grid">
+                {[
+                  { icon: ICONS.booking,  num: bookings.length,       label: 'Bookings'       },
+                  { icon: ICONS.bell,     num: notifications.length,  label: 'Notifications'  },
+                  { icon: ICONS.announce, num: announcements.length,  label: 'Announcements'  },
+                  { icon: ICONS.chat,     num: chatMessages.length,   label: 'Chat Messages'  },
+                ].map((s) => (
+                  <div className="ad-stat" key={s.label}>
+                    <div className="ad-stat-icon"><Icon d={s.icon} size={16} /></div>
+                    <div>
+                      <div className="ad-stat-num">{s.num}</div>
+                      <div className="ad-stat-label">{s.label}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="ad-overview-actions">
+                <div className="ad-card">
+                  <p className="ad-section-eyebrow">Priority</p>
+                  <h3 className="ad-section-title" style={{ fontSize: 18 }}>Jump to <em>Bookings</em></h3>
+                  <p className="ad-row-meta" style={{ marginTop: 10 }}>Review new booking requests and set status.</p>
+                  <button type="button" className="ad-submit" style={{ marginTop: 14 }} onClick={() => navigateSection('bookings')}>
+                    <Icon d={ICONS.booking} size={13} />
+                    Go to Bookings
+                  </button>
+                </div>
+                <div className="ad-card">
+                  <p className="ad-section-eyebrow">Engage</p>
+                  <h3 className="ad-section-title" style={{ fontSize: 18 }}>Send <em>Updates</em></h3>
+                  <p className="ad-row-meta" style={{ marginTop: 10 }}>Publish notifications or announcements to guests.</p>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
+                    <button type="button" className="ad-submit" onClick={() => navigateSection('notify')}>
+                      <Icon d={ICONS.bell} size={13} />
+                      Notifications
+                    </button>
+                    <button type="button" className="ad-submit" onClick={() => navigateSection('announce')}>
+                      <Icon d={ICONS.announce} size={13} />
+                      Announcements
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="ad-card" style={{ padding: 0, overflow: 'hidden' }}>
-              {bookings.length === 0 ? (
-                <p className="ad-empty">No booking requests yet.</p>
-              ) : (
-                <div className="ad-table-wrap">
-                  <table className="ad-table">
-                    <thead>
-                      <tr>
-                        <th>Guest</th>
-                        <th>Room</th>
-                        <th>Check-in</th>
-                        <th>Check-out</th>
-                        <th>Guests</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bookings.map((b, idx) => (
-                        <tr key={b.id} style={{ animationDelay: `${idx * 0.04}s` }}>
-                          <td>{b.fullName || '—'}</td>
-                          <td>{b.roomName || b.roomType || '—'}</td>
-                          <td>{b.checkIn  || '—'}</td>
-                          <td>{b.checkOut || '—'}</td>
-                          <td>{b.guests   || '—'}</td>
-                          <td>
-                            <select
-                              className="ad-status-select"
-                              value={b.status || 'pending'}
-                              onChange={(e) => handleStatus(b.id, e.target.value)}
-                              disabled={statusBusy === b.id}
+          )}
+
+          {activeNav === 'bookings' && (
+            <div id="ad-bookings" className="ad-section-block">
+              <div className="ad-section-header">
+                <div>
+                  <p className="ad-section-eyebrow">Reservations</p>
+                  <h2 className="ad-section-title">Booking <em>Requests</em></h2>
+                </div>
+              </div>
+              <div className="ad-card" style={{ padding: 0, overflow: 'hidden' }}>
+                {bookings.length === 0 ? (
+                  <p className="ad-empty">No booking requests yet.</p>
+                ) : (
+                  <div className="ad-table-wrap">
+                    <table className="ad-table">
+                      <thead>
+                        <tr>
+                          <th>Guest</th>
+                          <th>Room</th>
+                          <th>Check-in</th>
+                          <th>Check-out</th>
+                          <th>Guests</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bookings.map((b, idx) => (
+                          <tr key={b.id} style={{ animationDelay: `${idx * 0.04}s` }}>
+                            <td>{b.fullName || '—'}</td>
+                            <td>{b.roomName || b.roomType || '—'}</td>
+                            <td>{b.checkIn  || '—'}</td>
+                            <td>{b.checkOut || '—'}</td>
+                            <td>{b.guests   || '—'}</td>
+                            <td>
+                              <select
+                                className="ad-status-select"
+                                value={b.status || 'pending'}
+                                onChange={(e) => handleStatus(b.id, e.target.value)}
+                                disabled={statusBusy === b.id}
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {(activeNav === 'notify' || activeNav === 'announce') && (
+            <div className="ad-grid-2 ad-section-block">
+
+              {/* Send notification */}
+              <div id="ad-notify">
+                <div className="ad-section-header">
+                  <div>
+                    <p className="ad-section-eyebrow">Push</p>
+                    <h2 className="ad-section-title">Send <em>Notification</em></h2>
+                  </div>
+                </div>
+                <div className="ad-card">
+                  <form onSubmit={submitNotification} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <label className="ad-label">
+                      Message
+                      <textarea
+                        className="ad-textarea"
+                        placeholder="Write your notification message..."
+                        value={noteForm.message}
+                        onChange={(e) => setNoteForm({ ...noteForm, message: e.target.value })}
+                        required
+                      />
+                    </label>
+                    <label className="ad-label">
+                      Type
+                      <select
+                        className="ad-select"
+                        value={noteForm.type}
+                        onChange={(e) => setNoteForm({ ...noteForm, type: e.target.value })}
+                      >
+                        <option value="info">Info</option>
+                        <option value="success">Success</option>
+                        <option value="warning">Warning</option>
+                      </select>
+                    </label>
+                    <button type="submit" className="ad-submit">
+                      <Icon d={ICONS.send} size={13} />
+                      Publish Notification
+                    </button>
+                  </form>
+
+                  {notifications.length > 0 && (
+                    <div style={{ borderTop: '1px solid rgba(200,169,110,0.1)', paddingTop: 16 }}>
+                      <p className="ad-section-eyebrow" style={{ marginBottom: 10 }}>Published</p>
+                      <div className="ad-rows">
+                        {notifications.slice(0, 5).map((n, idx) => (
+                          <div className="ad-row" key={n.id} style={{ animationDelay: `${idx * 0.05}s` }}>
+                            <div className="ad-row-left">
+                              <p className="ad-row-main">{n.message}</p>
+                              <p className="ad-row-meta">{fmtDate(n.createdAt)}</p>
+                            </div>
+                            <span className={`ad-row-type ${n.type || 'info'}`}>{n.type || 'info'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Add announcement */}
+              <div id="ad-announce">
+                <div className="ad-section-header">
+                  <div>
+                    <p className="ad-section-eyebrow">Broadcast</p>
+                    <h2 className="ad-section-title">Add <em>Announcement</em></h2>
+                  </div>
+                </div>
+                <div className="ad-card">
+                  <form onSubmit={submitAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <label className="ad-label">
+                      Title
+                      <input
+                        className="ad-input"
+                        placeholder="e.g. Seasonal Offer — 20% Off"
+                        value={annForm.title}
+                        onChange={(e) => setAnnForm({ ...annForm, title: e.target.value })}
+                        required
+                      />
+                    </label>
+                    <label className="ad-label">
+                      Body
+                      <textarea
+                        className="ad-textarea"
+                        placeholder="Describe the announcement in detail..."
+                        value={annForm.body}
+                        onChange={(e) => setAnnForm({ ...annForm, body: e.target.value })}
+                        required
+                      />
+                    </label>
+                    <button type="submit" className="ad-submit">
+                      <Icon d={ICONS.announce} size={13} />
+                      Publish Announcement
+                    </button>
+                  </form>
+
+                  {announcements.length > 0 && (
+                    <div style={{ borderTop: '1px solid rgba(200,169,110,0.1)', paddingTop: 16 }}>
+                      <p className="ad-section-eyebrow" style={{ marginBottom: 10 }}>Active</p>
+                      <div className="ad-rows">
+                        {announcements.map((a, idx) => (
+                          <div className="ad-row" key={a.id} style={{ animationDelay: `${idx * 0.05}s` }}>
+                            <div className="ad-row-left">
+                              <p className="ad-row-main">{a.title}</p>
+                              <p className="ad-row-meta">{a.body}</p>
+                            </div>
+                            <button
+                              type="button"
+                              className="ad-del-btn"
+                              onClick={() => deleteDoc(doc(db, 'announcements', a.id))}
+                              aria-label="Delete announcement"
                             >
-                              <option value="pending">Pending</option>
-                              <option value="confirmed">Confirmed</option>
-                              <option value="cancelled">Cancelled</option>
-                            </select>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* ════ NOTIFICATIONS + ANNOUNCEMENTS ════ */}
-          <div className="ad-grid-2">
-
-            {/* Send notification */}
-            <div id="ad-notify">
-              <div className="ad-section-header">
-                <div>
-                  <p className="ad-section-eyebrow">Push</p>
-                  <h2 className="ad-section-title">Send <em>Notification</em></h2>
+                              <Icon d={ICONS.trash} size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="ad-card">
-                <form onSubmit={submitNotification} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <label className="ad-label">
-                    Message
-                    <textarea
-                      className="ad-textarea"
-                      placeholder="Write your notification message…"
-                      value={noteForm.message}
-                      onChange={(e) => setNoteForm({ ...noteForm, message: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label className="ad-label">
-                    Type
-                    <select
-                      className="ad-select"
-                      value={noteForm.type}
-                      onChange={(e) => setNoteForm({ ...noteForm, type: e.target.value })}
-                    >
-                      <option value="info">Info</option>
-                      <option value="success">Success</option>
-                      <option value="warning">Warning</option>
-                    </select>
-                  </label>
-                  <button type="submit" className="ad-submit">
-                    <Icon d={ICONS.send} size={13} />
-                    Publish Notification
-                  </button>
-                </form>
+            </div>
+          )}
 
-                {/* Live list */}
-                {notifications.length > 0 && (
-                  <div style={{ borderTop: '1px solid rgba(200,169,110,0.1)', paddingTop: 16 }}>
-                    <p className="ad-section-eyebrow" style={{ marginBottom: 10 }}>Published</p>
-                    <div className="ad-rows">
-                      {notifications.slice(0, 5).map((n, idx) => (
-                        <div className="ad-row" key={n.id} style={{ animationDelay: `${idx * 0.05}s` }}>
-                          <div className="ad-row-left">
-                            <p className="ad-row-main">{n.message}</p>
-                            <p className="ad-row-meta">{fmtDate(n.createdAt)}</p>
-                          </div>
-                          <span className={`ad-row-type ${n.type || 'info'}`}>{n.type || 'info'}</span>
-                        </div>
-                      ))}
-                    </div>
+          {activeNav === 'chat' && (
+            <div id="ad-chat" className="ad-section-block">
+              <div className="ad-section-header">
+                <div>
+                  <p className="ad-section-eyebrow">Inbox</p>
+                  <h2 className="ad-section-title">Live Chat <em>Messages</em></h2>
+                </div>
+              </div>
+              <div className="ad-card" style={{ padding: 0, overflow: 'hidden' }}>
+                {chatMessages.length === 0 ? (
+                  <p className="ad-empty">No chat messages yet.</p>
+                ) : (
+                  <div className="ad-table-wrap">
+                    <table className="ad-table">
+                      <thead>
+                        <tr>
+                          <th>Message</th>
+                          <th>Session</th>
+                          <th>Page</th>
+                          <th>Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {chatMessages.map((m, idx) => (
+                          <tr key={m.id} style={{ animationDelay: `${idx * 0.04}s` }}>
+                            <td style={{ maxWidth: 280, whiteSpace: 'normal' }}>{m.message || '—'}</td>
+                            <td style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(250,248,243,0.35)' }}>
+                              {m.sessionId ? `${m.sessionId.slice(0, 8)}...` : 'unknown'}
+                            </td>
+                            <td>{m.page || '/'}</td>
+                            <td>{fmtDate(m.createdAt)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
             </div>
+          )}
 
-            {/* Add announcement */}
-            <div id="ad-announce">
-              <div className="ad-section-header">
-                <div>
-                  <p className="ad-section-eyebrow">Broadcast</p>
-                  <h2 className="ad-section-title">Add <em>Announcement</em></h2>
-                </div>
-              </div>
-              <div className="ad-card">
-                <form onSubmit={submitAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <label className="ad-label">
-                    Title
-                    <input
-                      className="ad-input"
-                      placeholder="e.g. Seasonal Offer — 20% Off"
-                      value={annForm.title}
-                      onChange={(e) => setAnnForm({ ...annForm, title: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label className="ad-label">
-                    Body
-                    <textarea
-                      className="ad-textarea"
-                      placeholder="Describe the announcement in detail…"
-                      value={annForm.body}
-                      onChange={(e) => setAnnForm({ ...annForm, body: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <button type="submit" className="ad-submit">
-                    <Icon d={ICONS.announce} size={13} />
-                    Publish Announcement
-                  </button>
-                </form>
-
-                {/* Live list */}
-                {announcements.length > 0 && (
-                  <div style={{ borderTop: '1px solid rgba(200,169,110,0.1)', paddingTop: 16 }}>
-                    <p className="ad-section-eyebrow" style={{ marginBottom: 10 }}>Active</p>
-                    <div className="ad-rows">
-                      {announcements.map((a, idx) => (
-                        <div className="ad-row" key={a.id} style={{ animationDelay: `${idx * 0.05}s` }}>
-                          <div className="ad-row-left">
-                            <p className="ad-row-main">{a.title}</p>
-                            <p className="ad-row-meta">{a.body}</p>
-                          </div>
-                          <button
-                            type="button"
-                            className="ad-del-btn"
-                            onClick={() => deleteDoc(doc(db, 'announcements', a.id))}
-                            aria-label="Delete announcement"
-                          >
-                            <Icon d={ICONS.trash} size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* ════ LIVE CHAT ════ */}
-          <div id="ad-chat">
-            <div className="ad-section-header">
-              <div>
-                <p className="ad-section-eyebrow">Inbox</p>
-                <h2 className="ad-section-title">Live Chat <em>Messages</em></h2>
-              </div>
-            </div>
-            <div className="ad-card" style={{ padding: 0, overflow: 'hidden' }}>
-              {chatMessages.length === 0 ? (
-                <p className="ad-empty">No chat messages yet.</p>
-              ) : (
-                <div className="ad-table-wrap">
-                  <table className="ad-table">
-                    <thead>
-                      <tr>
-                        <th>Message</th>
-                        <th>Session</th>
-                        <th>Page</th>
-                        <th>Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {chatMessages.map((m, idx) => (
-                        <tr key={m.id} style={{ animationDelay: `${idx * 0.04}s` }}>
-                          <td style={{ maxWidth: 280, whiteSpace: 'normal' }}>{m.message || '—'}</td>
-                          <td style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(250,248,243,0.35)' }}>
-                            {m.sessionId ? m.sessionId.slice(0, 8) + '…' : 'unknown'}
-                          </td>
-                          <td>{m.page || '/'}</td>
-                          <td>{fmtDate(m.createdAt)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-
+        </div>
         </div>
       </main>
     </div>

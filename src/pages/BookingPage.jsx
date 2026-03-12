@@ -71,7 +71,7 @@ function BookingPage() {
       })
 
       pushNotification('Booking request sent and saved', 'success')
-    } catch (err) {
+    } catch {
       pushNotification('Booking request failed to save. Please try again.', 'info')
     } finally {
       setSending(false)

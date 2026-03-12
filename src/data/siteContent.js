@@ -2,9 +2,9 @@ export const hotelInfo = {
   name: 'GiftInn',
   city: 'Musanze',
   country: 'Rwanda',
-  phone: '+250793113849',
+  phone: '+250788608388',
   email: 'info@giftinnmusanze.com',
-  whatsapp: '250739113849',
+  whatsapp: '250788608388',
   address: 'NM 28 St, Near Musanze City Center, Musanze, Rwanda',
   coordinates: '-1.4992,29.6350',
 }
@@ -32,51 +32,45 @@ export const rooms = [
   {
     id: 1,
     name: 'Deluxe King View',
-    price: 145,
+    price: 15000,
     guests: '2 guests',
     size: '38 m2',
     description:
       'Elegant king room with panoramic mountain light, artisan decor, and a private balcony for sunrise views.',
     image:
-      'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80',
+      'https://i.ibb.co/qq2KDHF/image-11.jpg',
     images: [
-      'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1400&q=80',
+      'https://i.ibb.co/70wmwRh/image-10.jpg',
     ],
     amenities: ['King bed', 'Balcony view', 'High-speed Wi-Fi', 'Breakfast'],
   },
   {
     id: 2,
     name: 'Executive Twin Suite',
-    price: 180,
+    price: 17000,
     guests: '3 guests',
     size: '45 m2',
     description:
       'Business-ready twin suite with premium work desk, lounge area, and comfort-focused night lighting.',
     image:
-      'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80',
+      'https://i.ibb.co/PGJS4J0v/image-17.jpg',
     images: [
-      'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1617104678098-de229db51175?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1400&q=80',
-    ],
+      'https://i.ibb.co/hxV5sGHW/image-16.jpg',
+      ],
     amenities: ['Twin premium beds', 'Workspace desk', 'Mini bar', 'Airport pickup'],
   },
   {
     id: 3,
     name: 'Family Panorama Suite',
-    price: 220,
+    price: 22000,
     guests: '4 guests',
     size: '60 m2',
     description:
       'Spacious suite for families with private lounge, connected sleeping spaces, and curated kids amenities.',
     image:
-      'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1200&q=80',
+      'https://i.ibb.co/pvGkFQdZ/image-18.jpg',
     images: [
-      'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1522798514-97ceb8c4f1c8?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1400&q=80',
+      'https://i.ibb.co/qY5Sjdzx/image-14.jpg',
     ],
     amenities: ['2 bedrooms', 'Private lounge', 'Smart TV', 'Kids package'],
   },
@@ -88,7 +82,6 @@ export const amenities = [
   { title: 'Fitness Studio', text: 'Modern gym with personal coaching options.' },
   { title: 'Fine Dining', text: 'Local and international menu with chef tasting nights.' },
   { title: 'Conference Rooms', text: 'Business-ready halls with hybrid meeting setup.' },
-  { title: 'Airport Transfer', text: 'Private and group transport with local guidance.' },
 ]
 
 export const testimonials = [
@@ -110,12 +103,12 @@ export const testimonials = [
 ]
 
 export const galleryImages = [
-  'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1521783988139-89397d761dce?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1522798514-97ceb8c4f1c8?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1549294413-26f195200c16?auto=format&fit=crop&w=1200&q=80',
+  'https://i.ibb.co/qY5Sjdzx/image-1.jpg',
+  'https://i.ibb.co/70wmwRh/image-2.jpg',
+  'https://i.ibb.co/PGJS4J0v/image-3.jpg',
+  'https://i.ibb.co/hxV5sGHW/image-6.jpg',
+  'https://i.ibb.co/pvGkFQdZ/image-9.jpg',
+  'https://i.ibb.co/qq2KDHF/image-10.jpg',
 ]
 
 export const blogPosts = [

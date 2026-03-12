@@ -88,7 +88,7 @@ export function NotificationProvider({ children }) {
       window.clearTimeout(welcomeTimer)
       unsubscribe()
     }
-  }, [enqueueNotification, dismissedIds])
+  }, [enqueueNotification, dismissedIds, sendDeviceNotification])
 
   const removeNotification = (id) => {
     setDismissedIds((prev) => new Set([...prev, id]))

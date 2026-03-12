@@ -106,7 +106,7 @@ function HomePage() {
       <section className="split-section">
         <div
           className="split-img"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200&q=80')" }}
+          style={{ backgroundImage: "url('https://i.ibb.co/hRdLKS96/image-4.jpg')" }}
         />
         <div className="split-content">
           <p className="section-eyebrow">Our Story</p>

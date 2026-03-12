@@ -304,17 +304,17 @@ function Footer() {
 
         {/* Social icons */}
         <div className="gi-footer-socials" role="list" aria-label="Follow us">
-          {socials.map(({ label, href, Icon }) => (
+          {socials.map((item) => (
             <a
-              key={label}
-              href={href}
+              key={item.label}
+              href={item.href}
               target="_blank"
               rel="noreferrer noopener"
               className="gi-social-btn"
-              aria-label={`Follow us on ${label}`}
+              aria-label={`Follow us on ${item.label}`}
               role="listitem"
             >
-              <Icon />
+              <item.Icon />
             </a>
           ))}
         </div>

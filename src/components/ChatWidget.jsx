@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import { hotelInfo } from '../data/siteContent.js'
 import { useNotifications } from '../context/NotificationContext.jsx'
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore'

@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import { hotelInfo, rooms } from '../data/siteContent.js'
 import { useNotifications } from '../context/NotificationContext.jsx'
+import { db } from '../firebase.js'
 import { useSeo } from '../hooks/useSeo.js'
 
 const css = `
@@ -691,27 +693,45 @@ function RoomDetailsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSending(true)
-    await new Promise((r) => setTimeout(r, 900))
+    try {
+      await new Promise((r) => setTimeout(r, 400))
 
-    const summary =
-      `Room Booking Request%0A` +
-      `Name: ${encodeURIComponent(form.fullName)}%0A` +
-      `Phone: ${encodeURIComponent(form.phone)}%0A` +
-      `Room Type: ${encodeURIComponent(form.roomType)}%0A` +
-      `Check-In: ${encodeURIComponent(form.checkIn)}%0A` +
-      `Check-Out: ${encodeURIComponent(form.checkOut)}%0A` +
-      `Guests: ${encodeURIComponent(form.guests)}%0A` +
-      `Payment: ${encodeURIComponent(form.paymentMethod)}`
+      const summary =
+        `Room Booking Request%0A` +
+        `Name: ${encodeURIComponent(form.fullName)}%0A` +
+        `Phone: ${encodeURIComponent(form.phone)}%0A` +
+        `Room Type: ${encodeURIComponent(form.roomType)}%0A` +
+        `Check-In: ${encodeURIComponent(form.checkIn)}%0A` +
+        `Check-Out: ${encodeURIComponent(form.checkOut)}%0A` +
+        `Guests: ${encodeURIComponent(form.guests)}%0A` +
+        `Payment: ${encodeURIComponent(form.paymentMethod)}`
 
-    window.open(`https://wa.me/${hotelInfo.whatsapp}?text=${summary}`, '_blank', 'noreferrer')
-    window.open(
-      `mailto:${hotelInfo.email}?subject=GiftInn Room Booking Request&body=${summary.replaceAll('%0A', '\n')}`,
-      '_blank', 'noreferrer',
-    )
+      window.open(`https://wa.me/${hotelInfo.whatsapp}?text=${summary}`, '_blank', 'noreferrer')
+      window.open(
+        `mailto:${hotelInfo.email}?subject=GiftInn Room Booking Request&body=${summary.replaceAll('%0A', '\n')}`,
+        '_blank', 'noreferrer',
+      )
 
-    pushNotification('Booking request sent via WhatsApp & email!', 'success')
-    setSending(false)
-    setOpenBooking(false)
+      await addDoc(collection(db, 'bookings'), {
+        fullName: form.fullName,
+        phone: form.phone,
+        roomId: room.id,
+        roomName: form.roomType,
+        checkIn: form.checkIn,
+        checkOut: form.checkOut,
+        guests: form.guests,
+        paymentMethod: form.paymentMethod,
+        status: 'pending',
+        createdAt: serverTimestamp(),
+      })
+
+      pushNotification('Booking sent to WhatsApp and logged for admin', 'success')
+      setOpenBooking(false)
+    } catch {
+      pushNotification('Booking request failed. Please try again.', 'info')
+    } finally {
+      setSending(false)
+    }
   }
 
   const relatedRooms = rooms.filter((r) => r.id !== room.id)
@@ -738,7 +758,7 @@ function RoomDetailsPage() {
         </div>
         <div className="rd-price-block">
           <p className="rd-price-label">Starting From</p>
-          <p className="rd-price">${room.price}</p>
+          <p className="rd-price">Frw{room.price}</p>
           <p className="rd-price-sub">per night · taxes incl.</p>
         </div>
       </div>
@@ -843,7 +863,7 @@ function RoomDetailsPage() {
                 <img src={r.image} alt={r.name} />
                 <div className="rd-related-card-overlay">
                   <p className="rd-related-card-name">{r.name}</p>
-                  <p className="rd-related-card-price">from ${r.price} / night</p>
+                  <p className="rd-related-card-price">from Frw{r.price} / night</p>
                 </div>
               </a>
             ))}
